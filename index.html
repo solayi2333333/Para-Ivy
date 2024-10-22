@@ -1,0 +1,449 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Elegant FlipBook - Refined Purple Edition</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=Montserrat:wght@300;400;600&display=swap');
+
+        :root {
+            --color-primary: #9D8DF1;
+            --color-secondary: #B8A8FF;
+            --color-accent: #6C63FF;
+            --color-dark: #4A3F8D;
+            --color-light: #F1EBFF;
+            --color-white: #FFFFFF;
+            --gradient-primary: linear-gradient(135deg, #9D8DF1, #B8A8FF);
+            --gradient-dark: linear-gradient(135deg, #6C63FF, #4A3F8D);
+            --shadow-soft: 0 4px 6px rgba(74, 63, 141, 0.1);
+            --shadow-medium: 0 6px 12px rgba(74, 63, 141, 0.15);
+            --shadow-large: 0 15px 25px rgba(74, 63, 141, 0.2);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background: var(--gradient-primary);
+            font-family: 'Montserrat', sans-serif;
+            padding: 20px;
+        }
+
+        .book-container {
+            position: relative;
+            width: 1000px;
+            height: 600px;
+            perspective: 2000px;
+        }
+
+        .book {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            transform-style: preserve-3d;
+            box-shadow: var(--shadow-large);
+            border-radius: 10px;
+            background: var(--color-white);
+        }
+
+        .page {
+            position: absolute;
+            width: 50%;
+            height: 100%;
+            top: 0;
+            right: 0;
+            transform-origin: left;
+            transform-style: preserve-3d;
+            transition: transform 0.7s cubic-bezier(0.645, 0.045, 0.355, 1);
+            cursor: pointer;
+            background: var(--color-white);
+            box-shadow: var(--shadow-medium);
+            display: none;
+        }
+
+        .page.active {
+            display: block;
+        }
+
+        .page.flipped {
+            transform: rotateY(-180deg);
+        }
+
+        .page-content {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            padding: 40px;
+            backface-visibility: hidden;
+            background: var(--color-white);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            overflow-y: auto;
+            scrollbar-width: thin;
+            scrollbar-color: var(--color-accent) var(--color-light);
+            border-radius: 0 10px 10px 0;
+        }
+
+        .page-back {
+            transform: rotateY(180deg);
+            border-radius: 10px 0 0 10px;
+        }
+
+        .cover {
+            position: absolute;
+            width: 50%;
+            height: 100%;
+            left: 0;
+            background: var(--gradient-dark);
+            color: var(--color-white);
+            text-align: center;
+            padding: 40px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            transform-origin: right;
+            border-radius: 10px 0 0 10px;
+            box-shadow: var(--shadow-large);
+            transition: transform 0.7s cubic-bezier(0.645, 0.045, 0.355, 1);
+        }
+
+        .cover.open {
+            transform: rotateY(-180deg);
+        }
+
+        h1 {
+            font-family: 'Playfair Display', serif;
+            font-size: 2.5em;
+            margin-bottom: 20px;
+            font-weight: 700;
+            color: var(--color-dark);
+        }
+
+        .cover h1 {
+            color: var(--color-white);
+        }
+
+        p {
+            font-size: 1.1em;
+            line-height: 1.6;
+            margin-bottom: 20px;
+        }
+
+        .cover p {
+            color: var(--color-white);
+        }
+
+        .navigation {
+            position: fixed;
+            bottom: 20px;
+            display: flex;
+            gap: 20px;
+            z-index: 1000;
+        }
+
+        .nav-button {
+            padding: 12px 24px;
+            background: var(--color-accent);
+            color: var(--color-white);
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-family: 'Montserrat', sans-serif;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .nav-button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .nav-button:not(:disabled):hover {
+            background: var(--color-dark);
+            transform: translateY(-2px);
+        }
+
+        .gallery {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 20px;
+            width: 100%;
+        }
+
+        .gallery-item {
+            position: relative;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: var(--shadow-soft);
+        }
+
+        .gallery-item img {
+            width: 100%;
+            height: 150px;
+            object-fit: cover;
+        }
+
+        .featured-image {
+            width: 80%;
+            height: 250px;
+            object-fit: cover;
+            border-radius: 12px;
+            margin: 20px 0;
+        }
+
+        .decoration {
+            width: 100px;
+            height: 2px;
+            background: var(--color-accent);
+            margin: 20px 0;
+            position: relative;
+        }
+
+        .cover .decoration {
+            background: var(--color-white);
+        }
+
+        .page-number {
+            position: absolute;
+            bottom: 20px;
+            font-family: 'Playfair Display', serif;
+            font-style: italic;
+            color: var(--color-accent);
+        }
+
+        .full-page-image {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            border-radius: 0 10px 10px 0;
+        }
+
+        .page-back .full-page-image {
+            border-radius: 10px 0 0 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="book-container">
+        <div class="book">
+            <div class="cover">
+                <h1>Bienvenida Princesita</h1>
+                <div class="decoration"></div>
+                <p>El motivo de este libro es poder robarte una sonrisa nada me haria mas feliz que ese hecho asi que te dejo para que continues</p>
+                <i class="fas fa-book-open fa-3x" style="margin-top: 20px;"></i>
+            </div>
+
+            <div class="page" id="page1">
+                <div class="page-content">
+                    <h1>En todos los universos seremos tu y yo</h1>
+                    <div class="decoration"></div>
+                    <div class="gallery">
+                        <div class="gallery-item">
+                            <img src="img/1.jpg" alt="Imagen 1">
+                        </div>
+                        <div class="gallery-item">
+                            <img src="img/2.jpg" alt="Imagen 2">
+                        </div>
+                        <div class="gallery-item">
+                            <img src="img/3.jpg" alt="Imagen 3">
+                        </div>
+                        <div class="gallery-item">
+                            <img src="img/4.jpg" alt="Imagen 4">
+                        </div>
+                    </div>
+                    <span class="page-number">1</span>
+                </div>
+                <div class="page-content page-back">
+                    <h1>Querida Ivy</h1>
+                    <div class="decoration"></div>
+                    <img src="img/7.jpg" alt="Imagen destacada" class="featured-image">
+                    <p>Cada momento contigo es único y especial. Cada sonrisa, cada instante juntas forma parte de nuestra historia y agradezco todos los dias de mi vida que estas en ella, sin duda eres de esas casualidades que mas anhelas tener en la vida y yo te tengo a ti.</p>
+                    <span class="page-number">2</span>
+                </div>
+            </div>
+
+            <div class="page" id="page2">
+                <div class="page-content">
+                    <h1>Te quiero</h1>
+                    <div class="decoration"></div>
+                    <p>Cada dia que pasa me doy cuenta de la chica tan increible que eres, si me dieran un premio por cada una de las veces que he pensado que eres la chica mas perfecta del universo creo que seria millonaria por que no hay nada en este mundo de lo cual este segura como de que eres perfecta en todos los sentido, en todos los entornos siempre seras tu, por que a mi solo me importas tuy quise hacer esto para cuando estes desanimada puedas verlo y recordar lo fantastica que eres ante mis ojos, por que eso eres, eres perfecta.</p>
+                    <span class="page-number">3</span>
+                </div>
+                <div class="page-content page-back">
+                    <h1>Lista de razones por las que te quiero</h1>
+                    <div class="decoration"></div>
+                    <p>Tu sonrisa: Cada vez que sonríes, siento que iluminas mi mundo. Es imposible no sonreír contigo.
+                        Cómo me escuchas: Siempre me haces sentir importante cuando hablas conmigo, como si realmente te importara cada palabra que digo.
+                        Tu apoyo incondicional: No importa lo que esté pasando, siempre puedo contar contigo, y eso me da una paz increíble.
+                        Tu sentido del humor: Me encanta cómo te ríes de mis chistes malos, y cómo nos reímos juntas de cosas que solo nosotros entendemos.
+                        Tu inteligencia: Admiro lo inteligente que eres, cómo resuelves las cosas y la manera en que ves el mundo. Siempre aprendo algo nuevo de ti.
+                        Tu bondad: Eres una de las personas más amables que he conocido. Siempre piensas en los demás y eso me hace quererte aún más.
+                        Tu pasión por todo lo que haces: Ya sea en tu trabajo, tus hobbies o lo que te importa, siempre das todo de ti. Eso me inspira cada día.
+                        Los pequeños detalles: Siempre tienes un gesto o palabra que me sorprende y me hace sentir especial. Esas cosas significan mucho para mí.
+                        Cómo me haces sentir: Contigo, me siento completa, amada y segura. Haces que todo sea mejor solo con estar a mi lado.
+                        Tu autenticidad: Amo cómo no finges ser otra persona. Eres tú, sin filtros, y eso es algo que me hace adorarte cada día más.
+                        .</p>
+                    <span class="page-number">4</span>
+                </div>
+            </div>
+
+            <div class="page" id="page3">
+                <div class="page-content">
+                    <h1>Nuestro Futuro</h1>
+                    <div class="decoration"></div>
+                    <div class="gallery">
+                        <div class="gallery-item">
+                            <img src="img/dream1.jpg" alt="Imagen Futuro 1">
+                        </div>
+                        <div class="gallery-item">
+                            <img src="img/dream 2.jfif" alt="Imagen Futuro 2">
+                        </div>
+                        <div class="gallery-item">
+                            <img src="img/dream 3.jpg" alt="Imagen Futuro 3">
+                        </div>
+                        <div class="gallery-item">
+                            <img src="img/dream 4.jpg" alt="Imagen Futuro 4">
+                        </div>
+                    </div>
+                    <p>El futuro es brillante cuando lo veo contigo. Cada día es una nueva oportunidad para amarte más.</p>
+                    <span class="page-number">5</span>
+                </div>
+
+        <div class="page" id="page4">
+            <div class="page-content">
+                <img 
+                    src="img/descarga.jfif" 
+                    alt="Imagen a página completa" 
+                    class="full-page-image"
+                />
+                <span class="page-number">7</span>
+            </div>
+            <div class="page-content page-back">
+                <img 
+                    src="img/descarga.jfif" 
+                    alt="Imagen a página completa reverso" 
+                    class="full-page-image"
+                />
+                <span class="page-number">8</span>
+            </div>
+        </div>
+    </div>
+    <div class="page" id="page5">
+        <div class="page-content">
+            <h1>Nuestra cancion</h1>
+            <div class="decoration"></div>
+            <div style="width: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 30px; margin-top: 20px;">
+                <img 
+                    src="img/fallingforyou - the 1975.jfif" 
+                    alt="Imagen final" 
+                    style="width: 80%; height: 350px; object-fit: cover; border-radius: 12px; box-shadow: var(--shadow-medium);"
+                >
+                <p style="font-family: 'Playfair Display', serif; font-style: italic; font-size: 1.2em; text-align: center; color: var(--color-dark);">
+                    Al final, esta siempre sera nuestra canción
+                </p>
+            </div>
+            <span class="page-number">9</span>
+        </div>
+        <div class="page-content page-back">
+            <div style="width: 100%; height: 100%; display: flex; justify-content: center; align-items: center;">
+                <h1 style="font-family: 'Playfair Display', serif; font-style: italic; color: var(--color-accent);">
+                    Fin ♥
+                </h1>
+            </div>
+            <span class="page-number">10</span>
+        </div>
+    </div>
+        <div class="navigation">
+            <button class="nav-button" id="prevBtn">
+                <i class="fas fa-chevron-left"></i> Anterior
+            </button>
+            <button class="nav-button" id="nextBtn">
+                Siguiente <i class="fas fa-chevron-right"></i>
+            </button>
+        </div>
+    </div>
+
+    <script>
+        const pages = document.querySelectorAll('.page');
+        const cover = document.querySelector('.cover');
+        const prevBtn = document.getElementById('prevBtn');
+        const nextBtn = document.getElementById('nextBtn');
+        let currentPageIndex = -1; // Empezamos en -1 para la portada
+
+        function updatePageVisibility() {
+            // Manejar la portada
+            if (currentPageIndex === -1) {
+                cover.classList.remove('open');
+            } else {
+                cover.classList.add('open');
+            }
+
+            // Actualizar páginas
+            pages.forEach((page, index) => {
+                if (index < currentPageIndex) {
+                    page.classList.add('active', 'flipped');
+                } else if (index === currentPageIndex) {
+                    page.classList.add('active');
+                    page.classList.remove('flipped');
+                } else {
+                    page.classList.remove('active', 'flipped');
+                }
+            });
+
+            // Actualizar botones
+            prevBtn.disabled = currentPageIndex === -1;
+            nextBtn.disabled = currentPageIndex === pages.length - 1;
+        }
+
+        function nextPage() {
+            if (currentPageIndex < pages.length - 1) {
+                currentPageIndex++;
+                updatePageVisibility();
+            }
+        }
+
+        function previousPage() {
+            if (currentPageIndex > -1) {
+                currentPageIndex--;
+                updatePageVisibility();
+            }
+        }
+
+        // Inicialización
+        updatePageVisibility();
+
+        // Event listeners
+        prevBtn.addEventListener('click', previousPage);
+        nextBtn.addEventListener('click', nextPage);
+
+        // Click en las páginas
+        pages.forEach((page, index) => {
+            page.addEventListener('click', () => {
+                if (index === currentPageIndex) {
+                    nextPage();
+                } else if (index === currentPageIndex - 1) {
+                    previousPage();
+                }
+            });
+        });
+
+        // Click en la portada
+        cover.addEventListener('click', () => {
+            if (currentPageIndex === -1) {
+                nextPage();
+            }
+        });
+    </script>
+</body>
+</html>
